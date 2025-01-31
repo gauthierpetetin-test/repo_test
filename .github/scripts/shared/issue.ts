@@ -181,3 +181,45 @@ export async function retrieveLinkedIssues(
 
   return linkedIssues;
 }
+
+// This function creates an issue on a specific repo
+export async function createIssue(
+  octokit: InstanceType<typeof GitHub>,
+  repoId: string,
+  issueTitle: string,
+  issueBody: string,
+  labelIds: string[],
+): Promise<string> {
+  const createIssueMutation = `
+      mutation CreateIssue($repoId: ID!, $issueTitle: String!, $issueBody: String!, $labelIds: [ID!]) {
+        createIssue(input: {repositoryId: $repoId, title: $issueTitle, body: $issueBody, labelIds: $labelIds}) {
+          issue {
+            id
+            number
+            title
+            body
+          }
+        }
+      }
+    `;
+
+  const createIssueResult: {
+    createIssue: {
+      issue: {
+        id: string;
+        number: number;
+        title: string;
+        body: string;
+      };
+    };
+  } = await octokit.graphql(createIssueMutation, {
+    repoId,
+    issueTitle,
+    issueBody,
+    labelIds,
+  });
+
+  const issueId = createIssueResult?.createIssue?.issue?.id;
+
+  return issueId;
+}
