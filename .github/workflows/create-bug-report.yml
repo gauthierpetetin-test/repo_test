@@ -1,9 +1,6 @@
 name: Create release bug report issue when release branch gets created
 
-on:
-  create:
-    branches:
-      - release/*
+on: create
 
 jobs:
   create-bug-report:
@@ -17,7 +14,7 @@ jobs:
             echo "New release branch($version), continue next steps"
             echo "version=$version" >> "$GITHUB_OUTPUT"
           else
-            echo "Error. Unexpected format for release branch. Expected format: release/x.y.z where x, y, and z are integers."
+            echo "Not a release branch, skip next steps"
             exit 1
           fi
 
