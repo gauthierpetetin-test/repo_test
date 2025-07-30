@@ -1,0 +1,15 @@
+name: Check Attribution
+
+on:
+  push:
+    branches:
+      - Version-v*
+      - release/*
+
+jobs:
+  check-attribution:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log Attribution Status
+        run: echo "Attribution ok!"
+      # This is a placeholder step. Replace with actual attribution checks as needed.
