@@ -17,13 +17,19 @@ jobs:
             echo "Not a release branch, skip next steps"
           fi
 
-      - name: Checkout and setup environment
+      - name: Checkout repository
         if: steps.extract_version.outputs.version
-        uses: MetaMask/action-checkout-and-setup@v1
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        if: steps.extract_version.outputs.version
+        uses: actions/setup-node@v4
         with:
-          is-high-risk-environment: false
-          skip-allow-scripts: true
-          yarn-custom-url: ${{ vars.YARN_URL }}
+          node-version: 'lts/*'
+
+      - name: Install dependencies
+        if: steps.extract_version.outputs.version
+        run: yarn install --frozen-lockfile
 
       - name: Create bug report issue on planning repo
         if: steps.extract_version.outputs.version
