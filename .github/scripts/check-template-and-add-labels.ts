@@ -30,8 +30,7 @@ const knownBots = [
   'dependabot',
   'github-actions',
   'devin-ai-integration',
-  'runway-github',
-  'gauthierpetetin'
+  'runway-github'
 ];
 
 main().catch((error: Error): void => {
