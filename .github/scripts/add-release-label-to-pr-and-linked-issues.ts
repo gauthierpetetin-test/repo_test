@@ -5,7 +5,7 @@ import { GitHub } from '@actions/github/lib/utils';
 import { retrieveLinkedIssues } from './shared/issue';
 import { Label } from './shared/label';
 import { Labelable, addLabelToLabelable } from './shared/labelable';
-import { retrievePullRequest } from './shared/pullRequest';
+import { retrievePullRequest } from './shared/pull-request';
 import { isValidVersionFormat } from './shared/utils';
 
 main().catch((error: Error): void => {

@@ -16,16 +16,23 @@ import {
   RegressionStage,
   craftRegressionLabel,
   externalContributorLabel,
+  needsTriageLabel,
   flakyTestsLabel,
   invalidIssueTemplateLabel,
   invalidPullRequestTemplateLabel,
 } from './shared/label';
 import { TemplateType, templates } from './shared/template';
-import { retrievePullRequest } from './shared/pullRequest';
+import { retrievePullRequest } from './shared/pull-request';
 
-import teamsNotUsingTemplates from './shared/teams-not-using-templates.json';
-
-const knownBots = ["metamaskbot", "dependabot", "github-actions", "sentry-io", "gauthierpetetin"];
+const knownBots = [
+  'metamaskbot',
+  'dependabot',
+  'github-actions',
+  'sentry-io',
+  'devin-ai-integration',
+  'runway-github',
+  'gauthierpetetin'
+];
 
 main().catch((error: Error): void => {
   console.error(error);
@@ -79,7 +86,10 @@ async function main(): Promise<void> {
   }
 
   // If author is not part of the MetaMask organisation
-  if (!knownBots.includes(labelable?.author) && !(await userBelongsToMetaMaskOrg(octokit, labelable?.author))) {
+  if (
+    !knownBots.includes(labelable?.author) &&
+    !(await userBelongsToMetaMaskOrg(octokit, labelable?.author))
+  ) {
     // Add external contributor label to the issue
     await addLabelToLabelable(octokit, labelable, externalContributorLabel);
   }
@@ -91,27 +101,21 @@ async function main(): Promise<void> {
 
   // If labelable's author is a bot we skip the template checks as bots don't use templates
   if (knownBots.includes(labelable.author)) {
-    console.log(`${labelable.type === LabelableType.PullRequest ? 'PR' : 'Issue'} was created by a bot (${labelable.author}). Skip template checks.`);
+    console.log(
+      `${
+        labelable.type === LabelableType.PullRequest ? 'PR' : 'Issue'
+      } was created by a bot (${labelable.author}). Skip template checks.`,
+    );
     process.exit(0); // Stop the process and exit with a success status code
   }
 
   if (labelable.type === LabelableType.Issue) {
-  
-    // If labelable belongs to a team not using templates, we skip the template checks
-    if (isIssueFromTeamNotUsingTemplates(labelable)) {
-      console.log(`Issue ${labelable?.number} was created by a team not using templates. Skip template checks.`);
-      await removeLabelFromLabelableIfPresent(
-        octokit,
-        labelable,
-        invalidIssueTemplateLabel,
-      );
-      process.exit(0); // Stop the process and exit with a success status code
-    }
-
-    // If labelable is a flaky test report, no template is needed (we just add a link to circle.ci in the description), we skip the template checks
+    // If labelable is a flaky test report, no template is needed (we just add a link to ci in the description), we skip the template checks
     const flakyTestsLabelFound = findLabel(labelable, flakyTestsLabel);
     if (flakyTestsLabelFound?.id) {
-      console.log(`Issue ${labelable?.number} was created to report a flaky test. No template is needed in that case: we just add a link to circle.ci in the description. Skip template checks.`);
+      console.log(
+        `Issue ${labelable?.number} was created to report a flaky test. Issue's description doesn't need to match issue template in that case as the issue's description only includes a link redirecting to ci. Skip template checks.`,
+      );
       await removeLabelFromLabelableIfPresent(
         octokit,
         labelable,
@@ -138,9 +142,11 @@ async function main(): Promise<void> {
       // Add regression label to the bug report issue
       addRegressionLabelToIssue(octokit, labelable);
 
+      // Add needs triage label to the bug report issue
+      addNeedsTriageLabelToIssue(octokit, labelable);
     } else {
       const errorMessage =
-        "Issue body does not match any of expected templates ('general-issue.yml' or 'bug-report.yml').\n\nMake sure issue's body includes all section titles.\n\nSections titles are listed here: https://github.com/gauthierpetetin-test/repo_test/blob/main/.github/scripts/shared/template.ts#L14-L37";
+        "Issue body does not match any of expected templates ('general-issue.yml' or 'bug-report.yml').\n\nMake sure issue's body includes all section titles.\n\nSections titles are listed here: https://github.com/MetaMask/metamask-extension/blob/main/.github/scripts/shared/template.ts#L14-L37";
       console.log(errorMessage);
 
       // Add label to indicate issue doesn't match any template
@@ -159,8 +165,7 @@ async function main(): Promise<void> {
         invalidPullRequestTemplateLabel,
       );
     } else {
-      const errorMessage =
-        `PR body does not match template ('pull-request-template.md').\n\nMake sure PR's body includes all section titles.\n\nSections titles are listed here: https://github.com/gauthierpetetin-test/repo_test/blob/main/.github/scripts/shared/template.ts#L40-L47`;
+      const errorMessage = `PR body does not match template ('pull-request-template.md').\n\nMake sure PR's body includes all section titles.\n\nSections titles are listed here: https://github.com/gauthierpetetin-test/repo_test/blob/main/.github/scripts/shared/template.ts#L40-L47`;
       console.log(errorMessage);
 
       // Add label to indicate PR body doesn't match template
@@ -170,7 +175,7 @@ async function main(): Promise<void> {
         invalidPullRequestTemplateLabel,
       );
 
-      // TODO: Remove these two lines in Janiary 2024. By then, most PRs will match the new PR template, and we'll want the action to fail if they don't.
+      // TODO: Remove these two lines in January 2024. By then, most PRs will match the new PR template, and we'll want the action to fail if they don't.
       // For now, we're in a transition period and Github action shall add an annotation in case PR doesn't match template, but shall not fail.
       // Indeed, many PRs were created before the new PR template was introduced and don't match the template for now.
       core.error(errorMessage, {
@@ -223,13 +228,15 @@ function extractRegressionStageFromBugReportIssueBody(
   const detectionStageRegex = /### Detection stage\s*\n\s*(.*)/i;
   const match = body.match(detectionStageRegex);
   const extractedAnswer = match ? match[1].trim() : undefined;
-  
+
   switch (extractedAnswer) {
-    case 'On the development branch':
-      return RegressionStage.Development;
+    case 'On a feature branch':
+      return RegressionStage.DevelopmentFeature;
+    case 'On main branch':
+      return RegressionStage.DevelopmentMain;
     case 'During release testing':
       return RegressionStage.Testing;
-    case 'In beta':
+    case 'In public beta':
       return RegressionStage.Beta;
     case 'In production (default)':
       return RegressionStage.Production;
@@ -258,6 +265,13 @@ function extractReleaseVersionFromBugReportIssueBody(
   return version;
 }
 
+// This function adds the "needs-triage" label to the issue if it doesn't have it
+async function addNeedsTriageLabelToIssue(
+  octokit: InstanceType<typeof GitHub>,
+  issue: Labelable,
+): Promise<void> {
+  await addLabelToLabelable(octokit, issue, needsTriageLabel);
+}
 // This function adds the correct regression label to the issue, and removes other ones
 async function addRegressionLabelToIssue(
   octokit: InstanceType<typeof GitHub>,
@@ -274,8 +288,11 @@ async function addRegressionLabelToIssue(
   );
 
   // Craft regression label to add
-  const regressionLabel: Label = craftRegressionLabel(regressionStage, releaseVersion);
-  
+  const regressionLabel: Label = craftRegressionLabel(
+    regressionStage,
+    releaseVersion,
+  );
+
   let regressionLabelFound: boolean = false;
   const regressionLabelsToBeRemoved: {
     id: string;
@@ -297,9 +314,7 @@ async function addRegressionLabelToIssue(
       `Issue ${issue?.number} already has ${regressionLabel.name} label.`,
     );
   } else {
-    console.log(
-      `Add ${regressionLabel.name} label to issue ${issue?.number}.`,
-    );
+    console.log(`Add ${regressionLabel.name} label to issue ${issue?.number}.`);
     await addLabelToLabelable(octokit, issue, regressionLabel);
   }
 
@@ -335,16 +350,4 @@ async function userBelongsToMetaMaskOrg(
   } = await octokit.graphql(userBelongsToMetaMaskOrgQuery, { login: username });
 
   return Boolean(userBelongsToMetaMaskOrgResult?.user?.organization?.id);
-}
-
-// This function checks if issue belongs to a team not using templates.
-function isIssueFromTeamNotUsingTemplates(
-  issue: Labelable,
-): boolean {
-  for (const teamLabel of teamsNotUsingTemplates) {
-    if (issue.labels.find(label => label.name === teamLabel)) {
-      return true;
-    }
-  }
-  return false;
 }
