@@ -17,6 +17,7 @@ import {
   craftRegressionLabel,
   externalContributorLabel,
   needsTriageLabel,
+  areaSentryLabel,
   flakyTestsLabel,
   invalidIssueTemplateLabel,
   invalidPullRequestTemplateLabel,
@@ -134,6 +135,8 @@ async function main(): Promise<void> {
       );
       // Add needs triage label to the bug report issue
       addNeedsTriageLabelToIssue(octokit, labelable);
+      // Add area-Sentry label to the bug report issue
+      addAreaSentryLabelToIssue(octokit, labelable);
       process.exit(0); // Stop the process and exit with a success status code
     }
 
@@ -284,6 +287,13 @@ async function addNeedsTriageLabelToIssue(
   issue: Labelable,
 ): Promise<void> {
   await addLabelToLabelable(octokit, issue, needsTriageLabel);
+}
+// This function adds the "area-Sentry" label to the issue if it doesn't have it
+async function addAreaSentryLabelToIssue(
+  octokit: InstanceType<typeof GitHub>,
+  issue: Labelable,
+): Promise<void> {
+  await addLabelToLabelable(octokit, issue, areaSentryLabel);
 }
 // This function adds the correct regression label to the issue, and removes other ones
 async function addRegressionLabelToIssue(
