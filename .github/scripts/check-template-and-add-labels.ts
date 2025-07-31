@@ -124,7 +124,7 @@ async function main(): Promise<void> {
       process.exit(0); // Stop the process and exit with a success status code
     }
 
-    if (labelable.author === 'sentry-io') {
+    if (labelable.author === 'sentry-io' || labelable.author === 'gauthierpetetin') {
       console.log(
         `Issue ${labelable?.number} was created through Sentry. Issue's description doesn't need to match issue template in that case. Skip template checks.`,
       );
