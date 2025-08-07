@@ -1,6 +1,6 @@
 {
   "name": "my-test-repo",
-  "version": "1.0.0",
+  "version": "1.8.0",
   "scripts": {
     "format": "prettier --write \"**/*.ts\"",
     "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts",
