@@ -9,6 +9,7 @@ then
   exit 0
 fi
 
-VERSION_PACKAGE=$(yarn node -e "console.log(process.env.npm_package_version)")
+# Get the version from package.json
+VERSION_PACKAGE=$(node -p "require('./package.json').version")
 
 echo "NEXT_SEMVER_VERSION=${VERSION_PACKAGE}" >> "$GITHUB_ENV"
