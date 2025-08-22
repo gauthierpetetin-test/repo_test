@@ -394,26 +394,30 @@ function hasChangelogEntry(body: string): boolean {
   // Remove HTML comments (including multiline)
   const uncommentedBody = body.replace(/<!--[\s\S]*?-->/g, "");
 
-  // Match only the content immediately after "CHANGELOG entry:" on the same line
-  const regex = /^CHANGELOG entry:\s*(.*)$/im;
-  const match = uncommentedBody.match(regex);
+  // Split body into lines
+  const lines = uncommentedBody.split(/\r?\n/);
 
-  if (!match) {
-    return false; // line missing
+  // Find the line starting with "CHANGELOG entry:"
+  const changelogLine = lines.find(line => line.trim().startsWith("CHANGELOG entry:"));
+
+  if (!changelogLine) {
+    console.log("Changelog entry line missing");
+    return false;
   }
 
-  const entry = match[1].trim();
+  // Extract text after the colon
+  const entry = changelogLine.split(":")[1]?.trim() ?? "";
 
   if (entry === "") {
-    return false; // empty value
+    console.log("Changelog entry is empty");
+    return false;
   }
 
   if (entry.toLowerCase() === "undefined") {
-    return false; // explicitly disallow "undefined"
+    console.log("Changelog entry is explicitly undefined");
+    return false;
   }
 
   console.log(`Changelog entry found: ${entry}`);
-
-  // Allow any non-empty value, including "null"
-  return true;
+  return true; // allow any non-empty value, including "null"
 }
