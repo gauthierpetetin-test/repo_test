@@ -394,7 +394,8 @@ function hasChangelogEntry(body: string): boolean {
   // Remove HTML comments (including multiline)
   const uncommentedBody = body.replace(/<!--[\s\S]*?-->/g, "");
 
-  const regex = /^CHANGELOG entry:\s*([^\r\n]*)$/im;
+  // Match only the content immediately after "CHANGELOG entry:" on the same line
+  const regex = /^CHANGELOG entry:\s*(.*?)\s*$/im;
   const match = uncommentedBody.match(regex);
 
   if (!match) {
