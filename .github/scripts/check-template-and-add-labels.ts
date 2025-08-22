@@ -395,7 +395,7 @@ function hasChangelogEntry(body: string): boolean {
   const uncommentedBody = body.replace(/<!--[\s\S]*?-->/g, "");
 
   // Match only the content immediately after "CHANGELOG entry:" on the same line
-  const regex = /^CHANGELOG entry:\s*(.*?)\s*$/im;
+  const regex = /^CHANGELOG entry:\s*(.*)$/im;
   const match = uncommentedBody.match(regex);
 
   if (!match) {
