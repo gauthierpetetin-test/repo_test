@@ -408,6 +408,8 @@ function hasChangelogEntry(body: string): boolean {
     return false; // explicitly disallow "undefined"
   }
 
+  console.log(`Changelog entry found: ${entry}`);
+
   // Allow any non-empty value, including "null"
   return true;
 }
