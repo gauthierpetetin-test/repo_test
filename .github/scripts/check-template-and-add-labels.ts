@@ -185,6 +185,15 @@ async function main(): Promise<void> {
         labelable,
         invalidPullRequestTemplateLabel,
       );
+
+      // 🔽 Require changelog entry
+      if (!hasChangelogEntry(labelable.body)) {
+        const errorMessage = `PR is missing a valid "CHANGELOG entry:" line.`;
+        console.log(errorMessage);
+
+        core.setFailed(errorMessage);
+        process.exit(1);
+      }
     } else {
       const errorMessage = `PR body does not match template ('pull-request-template.md').\n\nMake sure PR's body includes all section titles.\n\nSections titles are listed here: https://github.com/gauthierpetetin-test/repo_test/blob/main/.github/scripts/shared/template.ts#L40-L47`;
       console.log(errorMessage);
@@ -378,4 +387,27 @@ async function userBelongsToMetaMaskOrg(
   } = await octokit.graphql(userBelongsToMetaMaskOrgQuery, { login: username });
 
   return Boolean(userBelongsToMetaMaskOrgResult?.user?.organization?.id);
+}
+
+// This function checks if the PR description has a changelog entry
+function hasChangelogEntry(body: string): boolean {
+  const regex = /^CHANGELOG entry:\s*(.*)$/im;
+  const match = body.match(regex);
+
+  if (!match) {
+    return false; // line missing
+  }
+
+  const entry = match[1].trim();
+
+  if (entry === "") {
+    return false; // empty value
+  }
+
+  if (entry.toLowerCase() === "undefined") {
+    return false; // explicitly disallow "undefined"
+  }
+
+  // Allow any non-empty value, including "null"
+  return true;
 }
