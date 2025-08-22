@@ -391,8 +391,11 @@ async function userBelongsToMetaMaskOrg(
 
 // This function checks if the PR description has a changelog entry
 function hasChangelogEntry(body: string): boolean {
+  // Remove HTML comments (including multiline)
+  const uncommentedBody = body.replace(/<!--[\s\S]*?-->/g, "");
+
   const regex = /^CHANGELOG entry:\s*(.*)$/im;
-  const match = body.match(regex);
+  const match = uncommentedBody.match(regex);
 
   if (!match) {
     return false; // line missing
