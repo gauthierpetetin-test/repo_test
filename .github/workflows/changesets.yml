@@ -1,13 +1,19 @@
-name: Changesets
+name: Require Changeset
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
 
 jobs:
-  check:
+  changeset:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm install
-      - run: npx changeset status --since=origin/main
+      - name: Install dependencies
+        run: npm install
+      - name: Check for changeset
+        run: |
+          if ! npx changeset status --since=origin/main; then
+            echo "❌ Please run \`yarn changeset\` locally, to add a user-facing changelog entry on your PR (or 'null' if not user-facing)."
+            exit 1
+          fi
