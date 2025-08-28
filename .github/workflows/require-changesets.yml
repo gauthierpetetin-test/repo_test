@@ -9,11 +9,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Prepare Yarn
+        run: corepack prepare yarn@4.9.1 --activate
+
       - name: Install dependencies
-        run: npm install
+        run: yarn install --immutable
+
       - name: Check for changeset
         run: |
-          if ! npx changeset status --since=origin/main; then
+          if ! yarn changeset status --since=origin/main; then
             echo "❌ Please run \`yarn changeset\` locally, to add a user-facing changelog entry on your PR (or 'null' if not user-facing)."
             exit 1
           fi
