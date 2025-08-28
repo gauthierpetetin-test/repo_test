@@ -27,6 +27,6 @@ jobs:
       - name: Check for user-facing changelog entry
         run: |
           if ! yarn changeset status --since=origin/main; then
-            echo "❌ Please run \`yarn changeset\` locally, to add a user-facing changelog entry on your PR (or 'null' if not user-facing)."
+            echo "❌ Missing changelog entry for this PR. Please run \`yarn changeset\` in your console, to add a user-facing changelog entry on your PR (or 'null' if not user-facing)."
             exit 1
           fi
