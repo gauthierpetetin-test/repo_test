@@ -21,6 +21,13 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
 
+      # 🔑 Enable Corepack so Yarn version from package.json is respected
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Prepare Yarn
+        run: corepack prepare yarn@4.9.1 --activate
+
       - name: Install dependencies
         run: yarn --immutable
 
