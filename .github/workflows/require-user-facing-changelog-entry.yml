@@ -1,4 +1,4 @@
-name: Require Changeset
+name: Require user-facing changelog entry
 
 on:
   pull_request:
@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Check for changeset
+      - name: Check for user-facing changelog entry
         run: |
           if ! yarn changeset status --since=origin/main; then
             echo "❌ Please run \`yarn changeset\` locally, to add a user-facing changelog entry on your PR (or 'null' if not user-facing)."
