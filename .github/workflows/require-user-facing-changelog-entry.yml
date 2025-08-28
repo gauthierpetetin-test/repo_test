@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # fetch full history so git can find divergence
 
       - name: Enable Corepack
         run: corepack enable
@@ -18,6 +20,9 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --immutable
+
+      - name: Fetch main branch
+        run: git fetch origin main:main
 
       - name: Check for user-facing changelog entry
         run: |
