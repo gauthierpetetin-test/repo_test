@@ -5,7 +5,6 @@
     "format": "prettier --write \"**/*.ts\"",
     "add-release-label-to-pr-and-linked-issues": "ts-node ./.github/scripts/add-release-label-to-pr-and-linked-issues.ts",
     "check-pr-has-required-labels": "ts-node ./.github/scripts/check-pr-has-required-labels.ts",
-    "close-release-bug-report-issue": "ts-node ./.github/scripts/close-release-bug-report-issue.ts",
     "check-template-and-add-labels": "ts-node ./.github/scripts/check-template-and-add-labels.ts",
     "create-bug-report-issue": "ts-node ./.github/scripts/create-bug-report-issue.ts"
   },
